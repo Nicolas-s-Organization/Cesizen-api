@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
+
 import * as authService from "../services/auth.service";
+import { AppError } from "../utils/error";
 
 
 
@@ -29,8 +31,8 @@ export const register = async (req: Request, res: Response) => {
   }
   catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return res.status(400).json({ code: "BAD_REQUEST", message: error.message });
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
     }
     return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
   }
@@ -60,9 +62,9 @@ export const login = async (req: Request, res: Response) => {
   }
   catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return res.status(401).json({ error: error.message });
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
     }
-    res.status(500).json({ error: "Erreur interne du serveur" });
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
   }
 };

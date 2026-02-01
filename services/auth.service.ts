@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { SignOptions } from "jsonwebtoken";
 import ms from "ms";
 
+import { AppError } from "../utils/error";
+
 import { UserRole } from "../generated/prisma/enums"
 
 
@@ -36,7 +38,11 @@ export const register = async (data: RegisterData) => {
   });
 
   if (existingUser) {
-    throw new Error("Un utilisateur avec cet email existe déjà");
+    throw new AppError(
+      "Un utilisateur avec cet email existe déjà",
+      "USER_ALREADY_EXISTS",
+      400
+    );
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -80,17 +86,29 @@ export const login = async (data: LoginData) => {
   });
 
   if (!user) {
-    throw new Error("Email ou mot de passe incorrect");
+    throw new AppError(
+      "Email ou mot de passe incorrect",
+      "INVALID_CREDENTIALS",
+      401
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
   if (!isPasswordValid) {
-    throw new Error("Email ou mot de passe incorrect");
+    throw new AppError(
+      "Email ou mot de passe incorrect",
+      "INVALID_CREDENTIALS",
+      401
+    );
   }
 
   if (!user.isActive) {
-    throw new Error("Ce compte est désactivé");
+    throw new AppError(
+      "Ce compte est désactivé",
+      "INVALID_CREDENTIALS",
+      403
+    )
   }
 
   const { password, ...userWithoutPassword } = user;
