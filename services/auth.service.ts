@@ -5,8 +5,8 @@ import { SignOptions } from "jsonwebtoken";
 import ms from "ms";
 
 import { AppError } from "../utils/error";
-
 import { UserRole } from "../generated/prisma/enums"
+import type { RegisterInput, LoginInput } from "../schemas/auth.schema";
 
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
@@ -15,24 +15,7 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN as string;
 
 
-export interface RegisterData {
-  email: string;
-  password: string;
-  firstname: string;
-  lastname: string;
-  birthdate: Date;
-  description: string;
-  role?: UserRole;
-}
-
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-
-export const register = async (data: RegisterData) => {
+export const register = async (data: RegisterInput) => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -80,7 +63,7 @@ export const register = async (data: RegisterData) => {
 };
 
 
-export const login = async (data: LoginData) => {
+export const login = async (data: LoginInput) => {
   const user = await prisma.user.findUnique({
     where: { email: data.email },
   });

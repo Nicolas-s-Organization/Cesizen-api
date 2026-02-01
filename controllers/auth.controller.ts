@@ -2,30 +2,14 @@ import type { Request, Response } from "express";
 
 import * as authService from "../services/auth.service";
 import { AppError } from "../utils/error";
-
+import type { RegisterInput, LoginInput } from "../schemas/auth.schema";
 
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const {
-      email,
-      password,
-      firstname,
-      lastname,
-      birthdate,
-      description,
-      role,
-    } = req.body;
+    const data = req.body as RegisterInput;
 
-    const result = await authService.register({
-      email,
-      password,
-      firstname,
-      lastname,
-      birthdate: new Date(birthdate),
-      description,
-      role,
-    });
+    const result = await authService.register(data);
 
     res.status(201).json(result);
   }
@@ -41,12 +25,9 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+      const data = req.body as LoginInput;
 
-    const { user, accessToken, refreshToken } = await authService.login({
-      email,
-      password,
-    });
+    const { user, accessToken, refreshToken } = await authService.login(data);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
