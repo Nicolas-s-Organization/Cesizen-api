@@ -105,6 +105,28 @@ export const login = async (data: LoginInput) => {
 };
 
 
+export const refreshToken = async (token: string) => {
+  const storedToken = await prisma.refreshToken.findUnique({
+    where: { token },
+    include: { user: true },
+  });
+
+  if (!storedToken) {
+    throw new AppError("Refresh token invalide", "INVALID_REFRESH_TOKEN", 401);
+  }
+
+  if (storedToken.expiresAt < new Date()) {
+    await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+    throw new AppError("Refresh token expiré", "EXPIRED_REFRESH_TOKEN", 401);
+  }
+
+  const newAccessToken = generateAccessToken(storedToken.userId);
+
+  return { accessToken: newAccessToken };
+};
+
+
+
 export const generateAccessToken = (userId: string) => {
   const expiresIn = (ACCESS_TOKEN_EXPIRES_IN || "15m") as NonNullable<SignOptions["expiresIn"]>;
   return jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: expiresIn });
@@ -112,9 +134,10 @@ export const generateAccessToken = (userId: string) => {
 
 
 export const generateRefreshToken = () => {
-  const expiresIn = (REFRESH_TOKEN_EXPIRES_IN || "15m") as NonNullable<SignOptions["expiresIn"]>;
+  const expiresIn = (REFRESH_TOKEN_EXPIRES_IN || "7d") as NonNullable<SignOptions["expiresIn"]>;
   return jwt.sign({}, REFRESH_TOKEN_SECRET, { expiresIn: expiresIn });
 }
+
 
 export const storeRefreshToken = async (refreshToken: string, userId: string,) => {
   const refreshTokenExpiresIn: string = REFRESH_TOKEN_EXPIRES_IN || "7d";

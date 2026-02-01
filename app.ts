@@ -1,5 +1,6 @@
 import express from "express";
 import { prisma } from './lib/prisma'
+import cookieParser from "cookie-parser";
 
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
@@ -10,6 +11,7 @@ async function main() {
     const port = 3000;
 
     app.use(express.json());
+    app.use(cookieParser()); 
 
     app.use("/users", userRoutes);
     app.use("/auth", authRoutes);

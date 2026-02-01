@@ -49,3 +49,25 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
   }
 };
+
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      throw new AppError("Refresh token manquant", "NO_REFRESH_TOKEN", 401);
+    }
+
+    const accessToken = await authService.refreshToken(refreshToken);
+
+    res.status(200).json({ accessToken });
+  } 
+  catch (error) {
+    console.error(error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
+    }
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+  }
+};
+
