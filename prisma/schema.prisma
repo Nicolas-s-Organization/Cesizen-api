@@ -13,21 +13,30 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
 
-
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
 model User {
-  id          Int       @id @default(autoincrement())
-  firstname   String    @db.VarChar(255)
-  lastname    String    @db.VarChar(255)
+  id          String   @id @default(uuid()) @db.Uuid
+  email       String   @unique
+  password    String
+  firstname   String
+  lastname    String
   birthdate   DateTime
-  description String?   @db.VarChar(500)
-  role        String    @db.VarChar(50)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  description String?
+  role        UserRole
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relations
   trackerItems TrackerItem[]
   articles     Article[]
   categories   Category[]
@@ -37,15 +46,14 @@ model User {
 }
 
 model TrackerItem {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  emotionId  Int
-  comment    String?  @db.VarChar(1000)
-  intensity  Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  emotionId String   @db.Uuid
+  comment   String?
+  intensity Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   emotion Emotion @relation(fields: [emotionId], references: [id], onDelete: Restrict)
 
@@ -53,35 +61,33 @@ model TrackerItem {
 }
 
 model Emotion {
-  id        Int      @id @default(autoincrement())
-  parentId  Int?
-  userId    Int
-  name      String   @db.VarChar(100)
+  id        String   @id @default(uuid()) @db.Uuid
+  parentId  String?  @db.Uuid
+  userId    String   @db.Uuid
+  name      String
   level     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent        Emotion?      @relation("EmotionHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children      Emotion[]     @relation("EmotionHierarchy")
-  trackerItems  TrackerItem[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Emotion?      @relation("EmotionHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Emotion[]     @relation("EmotionHierarchy")
+  trackerItems TrackerItem[]
 
   @@map("emotions")
 }
 
 model Article {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  categoryId Int
-  title      String   @db.VarChar(255)
-  content    String   @db.Text
-  status     Int      @default(0)
-  imagePath  String?  @db.VarChar(500)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id         String        @id @default(uuid()) @db.Uuid
+  userId     String        @db.Uuid
+  categoryId String        @db.Uuid
+  title      String
+  content    String
+  status     ArticleStatus @default(DRAFT)
+  imagePath  String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
-  // Relations
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
@@ -89,13 +95,12 @@ model Article {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  name      String   @db.VarChar(100)
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   articles Article[]
 

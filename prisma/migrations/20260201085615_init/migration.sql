@@ -1,11 +1,19 @@
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
+
+-- CreateEnum
+CREATE TYPE "ArticleStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+
 -- CreateTable
 CREATE TABLE "users" (
-    "id" SERIAL NOT NULL,
-    "firstname" VARCHAR(255) NOT NULL,
-    "lastname" VARCHAR(255) NOT NULL,
+    "id" UUID NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "firstname" TEXT NOT NULL,
+    "lastname" TEXT NOT NULL,
     "birthdate" TIMESTAMP(3) NOT NULL,
-    "description" VARCHAR(500),
-    "role" VARCHAR(50) NOT NULL,
+    "description" TEXT,
+    "role" "UserRole" NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -15,10 +23,10 @@ CREATE TABLE "users" (
 
 -- CreateTable
 CREATE TABLE "tracker_items" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "emotionId" INTEGER NOT NULL,
-    "comment" VARCHAR(1000),
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "emotionId" UUID NOT NULL,
+    "comment" TEXT,
     "intensity" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -28,10 +36,10 @@ CREATE TABLE "tracker_items" (
 
 -- CreateTable
 CREATE TABLE "emotions" (
-    "id" SERIAL NOT NULL,
-    "parentId" INTEGER,
-    "userId" INTEGER NOT NULL,
-    "name" VARCHAR(100) NOT NULL,
+    "id" UUID NOT NULL,
+    "parentId" UUID,
+    "userId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
     "level" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -41,13 +49,13 @@ CREATE TABLE "emotions" (
 
 -- CreateTable
 CREATE TABLE "articles" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "categoryId" INTEGER NOT NULL,
-    "title" VARCHAR(255) NOT NULL,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "categoryId" UUID NOT NULL,
+    "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "status" INTEGER NOT NULL DEFAULT 0,
-    "imagePath" VARCHAR(500),
+    "status" "ArticleStatus" NOT NULL DEFAULT 'DRAFT',
+    "imagePath" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -56,14 +64,17 @@ CREATE TABLE "articles" (
 
 -- CreateTable
 CREATE TABLE "categories" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "name" VARCHAR(100) NOT NULL,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- AddForeignKey
 ALTER TABLE "tracker_items" ADD CONSTRAINT "tracker_items_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

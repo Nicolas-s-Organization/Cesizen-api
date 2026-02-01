@@ -1,8 +1,8 @@
 import express from "express";
-import { Router } from "express";
 import { prisma } from './lib/prisma'
 
-import usersRoutes from "./routes/user.routes";
+import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
 
 
 async function main() {
@@ -11,29 +11,12 @@ async function main() {
 
     app.use(express.json());
 
-    // app.get('/', async (req, res) => {
-    //     const user = await prisma.user.create({
-    //         data: {
-    //             firstname: "Alice",
-    //             lastname: "Dupont",
-    //             birthdate: new Date("1995-06-15"),
-    //             description: "Test user",
-    //             role: "USER",
-    //         },
-    //     });
-    //     console.log('Created user:', user)
-
-    //     res.send('user created')
-    // })
-
-    app.use("/users", usersRoutes);
-
+    app.use("/users", userRoutes);
+    app.use("/auth", authRoutes);
 
     app.listen(port, () => {
         console.log(`Api CesiZen listening on port ${port}`);
     })
-
-
 }
 
 
