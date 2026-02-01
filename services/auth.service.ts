@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { SignOptions } from "jsonwebtoken";
 import ms from "ms";
+import argon2 from "argon2";
+import { randomUUID } from "crypto";
 
 import { AppError } from "../utils/error";
 import { UserRole } from "../generated/prisma/enums"
@@ -97,22 +99,33 @@ export const login = async (data: LoginInput) => {
   const { password, ...userWithoutPassword } = user;
 
   const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken();
 
-  await storeRefreshToken(refreshToken, user.id);
+  const refreshTokenId = randomUUID();
+  const refreshToken = generateRefreshToken(refreshTokenId);
+
+  await storeRefreshToken(refreshToken, user.id, refreshTokenId);
 
   return { user: userWithoutPassword, accessToken, refreshToken };
 };
 
 
 export const refreshToken = async (token: string) => {
+  let payload;
+  try {
+    payload = jwt.verify(token, REFRESH_TOKEN_SECRET) as { jti: string };
+  }
+  catch {
+    throw new AppError("Refresh token invalide", "INVALID_REFRESH_TOKEN", 401);
+  }
+
+
   const storedToken = await prisma.refreshToken.findUnique({
-    where: { token },
+    where: { id: payload.jti },
     include: { user: true },
   });
 
   if (!storedToken) {
-    throw new AppError("Refresh token invalide", "INVALID_REFRESH_TOKEN", 401);
+    throw new AppError("Refresh token révoqué", "INVALID_REFRESH_TOKEN", 401);
   }
 
   if (storedToken.expiresAt < new Date()) {
@@ -120,9 +133,15 @@ export const refreshToken = async (token: string) => {
     throw new AppError("Refresh token expiré", "EXPIRED_REFRESH_TOKEN", 401);
   }
 
+  const isValid = await argon2.verify(storedToken.token, token);
+
+  if (!isValid) {
+    throw new AppError("Refresh token invalide", "INVALID_REFRESH_TOKEN", 401);
+  }
+
   const newAccessToken = generateAccessToken(storedToken.userId);
 
-  return { accessToken: newAccessToken };
+  return newAccessToken;
 };
 
 
@@ -133,19 +152,22 @@ export const generateAccessToken = (userId: string) => {
 };
 
 
-export const generateRefreshToken = () => {
+export const generateRefreshToken = (tokenId: string) => {
   const expiresIn = (REFRESH_TOKEN_EXPIRES_IN || "7d") as NonNullable<SignOptions["expiresIn"]>;
-  return jwt.sign({}, REFRESH_TOKEN_SECRET, { expiresIn: expiresIn });
+  return jwt.sign({ jti: tokenId }, REFRESH_TOKEN_SECRET, { expiresIn: expiresIn });
 }
 
 
-export const storeRefreshToken = async (refreshToken: string, userId: string,) => {
+export const storeRefreshToken = async (refreshToken: string, userId: string, refreshTokenId: string) => {
   const refreshTokenExpiresIn: string = REFRESH_TOKEN_EXPIRES_IN || "7d";
   const expiresAt = new Date(Date.now() + ms(refreshTokenExpiresIn as any));
+  const hashedToken = await argon2.hash(refreshToken);
+
   await prisma.refreshToken.create({
     data: {
+      id: refreshTokenId,
       userId,
-      token: refreshToken,
+      token: hashedToken,
       expiresAt,
     },
   });
