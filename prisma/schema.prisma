@@ -41,6 +41,7 @@ model User {
   articles     Article[]
   categories   Category[]
   emotions     Emotion[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -105,4 +106,16 @@ model Category {
   articles Article[]
 
   @@map("categories")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refreshTokens")
 }
