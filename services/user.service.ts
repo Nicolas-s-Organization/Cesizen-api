@@ -1,14 +1,14 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/error";
 
-export interface UserData {
-  firstname: string;
-  lastname: string;
-  birthdate: Date;
-  description?: string;
-  role: string;
-  isActive?: boolean;
-}
+// export interface UserData {
+//   firstname: string;
+//   lastname: string;
+//   birthdate: Date;
+//   description?: string;
+//   role: string;
+//   isActive?: boolean;
+// }
 
 
 export const getAllUsers = async () => {
