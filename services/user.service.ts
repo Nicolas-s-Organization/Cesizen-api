@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { AppError } from "../utils/error";
 
 export interface UserData {
   firstname: string;
@@ -22,44 +23,26 @@ export const getAllUsers = async () => {
 };
 
 
-// export const getUserById = async (id: number) => {
-//   return prisma.user.findUnique({
-//     where: { id },
-//     include: {
-//       trackerItems: true,
-//       articles: true,
-//       categories: true,
-//       emotions: true,
-//     },
-//   });
-// };
+export const getUserById = async (id: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      firstname: true,
+      lastname: true,
+      birthdate: true,
+      description: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 
+  if (!user) {
+    throw new AppError("Utilisateur introuvable","USER_NOT_FOUND",404);
+  }
 
-// export const createUser = async (data: UserData) => {
-//   return prisma.user.create({
-//     data,
-//   });
-// };
-
-
-// export const updateUser = async (id: number, data: Partial<UserData>) => {
-//   try {
-//     return prisma.user.update({
-//       where: { id },
-//       data,
-//     });
-//   } catch (error) {
-//     return null; 
-//   }
-// };
-
-
-// export const deleteUser = async (id: number) => {
-//   try {
-//     return prisma.user.delete({
-//       where: { id },
-//     });
-//   } catch (error) {
-//     return null; 
-//   }
-// };
+  return user;
+};
