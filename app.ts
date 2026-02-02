@@ -1,27 +1,34 @@
 import express from "express";
 import { prisma } from './lib/prisma'
+import cookieParser from "cookie-parser";
+import { Request, Response, NextFunction } from "express";
+import { AppError } from "./utils/error";
+
+import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
+
 
 async function main() {
     const app = express();
     const port = 3000;
 
-    app.get('/', async (req, res) => {
-        const user = await prisma.user.create({
-            data: {
-                firstname: "Alice",
-                lastname: "Dupont",
-                birthdate: new Date("1995-06-15"),
-                description: "Test user",
-                role: "USER",
-            },
-        });
-        console.log('Created user:', user)
+    app.use(express.json());
+    app.use(cookieParser());
 
-        res.send('user created')
-    })
+    app.use("/users", userRoutes);
+    app.use("/auth", authRoutes);
+
+
+    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+        if (err instanceof AppError) {
+            return res.status(err.statusCode).json({ code: err.code, message: err.message });
+        }
+        console.error(err);
+        return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+    });
 
     app.listen(port, () => {
-        console.log(`Example app listening on port ${port}`);
+        console.log(`Api CesiZen listening on port ${port}`);
     })
 }
 
