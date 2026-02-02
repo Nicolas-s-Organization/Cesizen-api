@@ -42,7 +42,7 @@ export const register = async (data: RegisterInput) => {
       password: hashedPassword,
       firstname: data.firstname,
       lastname: data.lastname,
-      birthdate: data.birthdate,
+      birthdate: new Date(data.birthdate),
       description: data.description,
       role: role,
       isActive: true,
