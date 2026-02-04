@@ -6,6 +6,7 @@ import { AppError } from "./utils/error";
 
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
+import categoryRoutes from "./routes/category.routes";
 
 
 async function main() {
@@ -15,8 +16,9 @@ async function main() {
     app.use(express.json());
     app.use(cookieParser());
 
-    app.use("/users", userRoutes);
     app.use("/auth", authRoutes);
+    app.use("/users", userRoutes);
+    app.use("/categories", categoryRoutes);
 
 
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
