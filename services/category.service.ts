@@ -41,20 +41,18 @@ export const createCategory = async (userId: string, name: string) => {
 };
 
 
-export const updateCategory = async (userId: string, categoryId: string, updateData: UpdateCategoryInput
-) => {
+export const updateCategory = async (categoryId: string, updateData: UpdateCategoryInput) => {
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
   });
 
-  if (!category || category.userId !== userId) {
-    throw new AppError("Catégorie introuvable ou accès non autorisé", "CATEGORY_NOT_FOUND", 404);
+  if (!category) {
+    throw new AppError("Catégorie introuvable", "CATEGORY_NOT_FOUND", 404);
   }
 
   if (updateData.name) {
     const existingCategory = await prisma.category.findFirst({
       where: {
-        userId,
         name: updateData.name,
         NOT: { id: categoryId },
       },
@@ -72,3 +70,37 @@ export const updateCategory = async (userId: string, categoryId: string, updateD
 
   return updatedCategory;
 };
+
+
+export const deleteCategory = async (categoryId: string) => {
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    include: {
+      _count: {
+        select: {
+          articles: true,
+        },
+      },
+    },
+  });
+
+  if (!category) {
+    throw new AppError("Catégorie introuvable", "CATEGORY_NOT_FOUND", 404);
+  }
+
+  if (category._count.articles > 0) {
+    throw new AppError("Impossible de supprimer une catégorie contenant des articles", "CATEGORY_NOT_EMPTY", 400);
+  }
+
+  // vérifier que la catégorie a des ressources
+  const updatedCategory = await prisma.category.delete({
+    where: { id: categoryId },
+  });
+
+  return updatedCategory;
+};
+
+
+
+
+

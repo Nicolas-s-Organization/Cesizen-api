@@ -12,6 +12,6 @@ const router = Router();
 router.get("/", catogoryController.getCategories);
 router.post("/", authMiddleware, adminCheck, validate(createCategorySchema), catogoryController.createCategory);
 router.put("/:id", authMiddleware, adminCheck, validate(updateCategorySchema), catogoryController.updateCategory);
-
+router.delete("/:id", authMiddleware, adminCheck, catogoryController.deleteCategory);
 
 export default router;
