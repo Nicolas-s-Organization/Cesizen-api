@@ -7,6 +7,7 @@ import { AppError } from "./utils/error";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import categoryRoutes from "./routes/category.routes";
+import articleRoutes from "./routes/article.routes";
 
 
 async function main() {
@@ -19,6 +20,7 @@ async function main() {
     app.use("/auth", authRoutes);
     app.use("/users", userRoutes);
     app.use("/categories", categoryRoutes);
+    app.use("/articles", articleRoutes);
 
 
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
