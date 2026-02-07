@@ -70,4 +70,54 @@ export const createArticle = async (req: AuthRequest, res: Response) => {
 };
 
 
+export const uploadArticleImage = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 401);
+        }
+
+        const { articleId } = req.params;
+        if (!articleId || typeof articleId !== "string") {
+            throw new AppError("ID article invalide", "INVALID_ARTICLE_ID", 400);
+        }
+
+        if (!req.file) {
+            throw new AppError("Aucun fichier envoyé", "NO_FILE", 400);
+        }
+
+        console.log(req.file);
+
+        // chemin relatif enregistré en DB
+        const imagePath = `/uploads/articles/${req.file.filename}`;
+
+        const updatedArticle = await articleService.updateArticleImage(
+            req.user.id,
+            articleId,
+            imagePath
+        );
+
+        return res.status(200).json(updatedArticle);
+    }
+    catch (error) {
+        console.error(error);
+
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                code: error.code,
+                message: error.message,
+            });
+        }
+
+        return res.status(500).json({
+            code: "INTERNAL_ERROR",
+            message: "Erreur serveur",
+        });
+    }
+};
+
+
+
+
+
+
 

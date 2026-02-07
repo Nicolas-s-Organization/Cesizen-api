@@ -58,3 +58,25 @@ export const createArticle = async (userId: string, articleData: CreateArticleIn
 };
 
 
+export const updateArticleImage = async (userId: string, articleId: string, imagePath: string) => {
+    // Vérifier que l’article appartient au user
+    const article = await prisma.article.findFirst({
+        where: {
+            id: articleId,
+            userId,
+        },
+    });
+
+    if (!article) {
+        throw new AppError("Article introuvable", "ARTICLE_NOT_FOUND", 404);
+    }
+
+    // Update imagePath
+    return prisma.article.update({
+        where: { id: articleId },
+        data: { imagePath },
+    });
+};
+
+
+
