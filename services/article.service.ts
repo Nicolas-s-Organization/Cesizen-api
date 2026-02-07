@@ -1,4 +1,6 @@
 import { prisma } from "../lib/prisma";
+import fs from "fs";
+import path from "path";
 
 import { AppError } from "../utils/error";
 import { CreateArticleInput } from "../schemas/article.schema";
@@ -71,6 +73,15 @@ export const updateArticleImage = async (userId: string, articleId: string, imag
         throw new AppError("Article introuvable", "ARTICLE_NOT_FOUND", 404);
     }
 
+    // Supprimer l'ancienne image si elle existe
+    if (article.imagePath) {
+        const oldImagePath = path.join(__dirname, "../../", article.imagePath);
+        console.log(oldImagePath)
+
+        fs.unlink(oldImagePath, (err) => {
+            if (err) console.warn("Impossible de supprimer l'ancienne image :", err.message);
+        });
+    }
     // Update imagePath
     return prisma.article.update({
         where: { id: articleId },
