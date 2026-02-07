@@ -50,7 +50,7 @@ export const getArticleById = async (req: Request, res: Response) => {
 export const createArticle = async (req: AuthRequest, res: Response) => {
     try {
         if (!req.user) {
-            throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 404);
+            throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 401);
         }
 
         const userId = req.user.id;
@@ -114,11 +114,6 @@ export const uploadArticleImage = async (req: AuthRequest, res: Response) => {
 
 export const updateArticle = async (req: AuthRequest, res: Response) => {
     try {
-        if (!req.user) {
-            throw new AppError("Non authentifié", "UNAUTHORIZED", 401);
-        }
-
-        const userId = req.user.id;
         const { articleId } = req.params;
         const articleData = req.body as UpdateArticleInput;
 
@@ -127,7 +122,7 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
         }
 
 
-        const updatedArticle = await articleService.updateArticle(userId, articleId, articleData);
+        const updatedArticle = await articleService.updateArticle(articleId, articleData);
 
         return res.status(200).json(updatedArticle);
     }
@@ -145,16 +140,12 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
 
 export const deleteArticle = async (req: AuthRequest, res: Response) => {
     try {
-        if (!req.user) {
-            throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 404);
-        }
-
         const { articleId } = req.params;
         if (!articleId || typeof articleId !== "string") {
             throw new AppError("ID article invalide", "INVALID_ARTICLE_ID", 400);
         }
 
-        await articleService.deleteArticle(req.user.id, articleId);
+        await articleService.deleteArticle(articleId);
 
         return res.status(200).json({ message: "Article supprimé avec succès" });
     }

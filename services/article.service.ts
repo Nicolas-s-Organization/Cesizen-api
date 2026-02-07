@@ -90,7 +90,7 @@ export const updateArticleImage = async (userId: string, articleId: string, imag
 };
 
 
-export const updateArticle = async (userId: string, articleId: string, data: UpdateArticleInput) => {
+export const updateArticle = async (articleId: string, data: UpdateArticleInput) => {
     const article = await prisma.article.findFirst({
         where: {
             id: articleId,
@@ -108,7 +108,7 @@ export const updateArticle = async (userId: string, articleId: string, data: Upd
 };
 
 
-export const deleteArticle = async (userId: string, articleId: string) => {
+export const deleteArticle = async (articleId: string) => {
     // Vérifier que l'article existe
     const article = await prisma.article.findFirst({
         where: {
