@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma";
+
 import { AppError } from "../utils/error";
+import { CreateArticleInput } from "../schemas/article.schema";
 
 
 export const getAllArticles = async () => {
@@ -27,3 +29,32 @@ export const getArticleById = async (id: string) => {
 
     return article;
 };
+
+
+export const createArticle = async (userId: string, articleData: CreateArticleInput) => {
+    const { title, content, categoryId, status } = articleData;
+
+    const category = await prisma.category.findFirst({
+        where: {
+            id: categoryId,
+        },
+    });
+
+    if (!category) {
+        throw new AppError("Catégorie introuvable", "CATEGORY_NOT_FOUND", 404);
+    }
+
+    const article = await prisma.article.create({
+        data: {
+            title,
+            content,
+            status,
+            userId,
+            categoryId,
+        },
+    });
+
+    return article;
+};
+
+
