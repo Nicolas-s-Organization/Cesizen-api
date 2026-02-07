@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import * as articleService from "../services/article.service";
-import { CreateArticleInput } from "../schemas/article.schema";
+import { CreateArticleInput , UpdateArticleInput} from "../schemas/article.schema";
 import { AppError } from "../utils/error";
 
 
@@ -90,11 +90,7 @@ export const uploadArticleImage = async (req: AuthRequest, res: Response) => {
         // chemin relatif enregistré en DB
         const imagePath = `/uploads/articles/${req.file.filename}`;
 
-        const updatedArticle = await articleService.updateArticleImage(
-            req.user.id,
-            articleId,
-            imagePath
-        );
+        const updatedArticle = await articleService.updateArticleImage(req.user.id, articleId, imagePath);
 
         return res.status(200).json(updatedArticle);
     }
@@ -112,6 +108,37 @@ export const uploadArticleImage = async (req: AuthRequest, res: Response) => {
             code: "INTERNAL_ERROR",
             message: "Erreur serveur",
         });
+    }
+};
+
+
+export const updateArticle = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            throw new AppError("Non authentifié", "UNAUTHORIZED", 401);
+        }
+
+        const userId = req.user.id;
+        const { articleId } = req.params;
+        const articleData = req.body as UpdateArticleInput;
+
+        if (!articleId || typeof articleId !== "string") {
+            throw new AppError("ID article invalide", "INVALID_ARTICLE_ID", 400);
+        }
+
+
+        const updatedArticle = await articleService.updateArticle(userId, articleId, articleData);
+
+        return res.status(200).json(updatedArticle);
+    }
+    catch (error) {
+        console.error(error);
+
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ code: error.code, message: error.message, });
+        }
+
+        return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur", });
     }
 };
 

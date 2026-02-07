@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 import { AppError } from "../utils/error";
-import { CreateArticleInput } from "../schemas/article.schema";
+import { CreateArticleInput, UpdateArticleInput } from "../schemas/article.schema";
 
 
 export const getAllArticles = async () => {
@@ -86,6 +86,24 @@ export const updateArticleImage = async (userId: string, articleId: string, imag
     return prisma.article.update({
         where: { id: articleId },
         data: { imagePath },
+    });
+};
+
+
+export const updateArticle = async (userId: string, articleId: string, data: UpdateArticleInput) => {
+    const article = await prisma.article.findFirst({
+        where: {
+            id: articleId,
+        },
+    });
+
+    if (!article) {
+        throw new AppError("Article introuvable", "ARTICLE_NOT_FOUND", 404);
+    }
+
+    return prisma.article.update({
+        where: { id: articleId },
+        data,
     });
 };
 

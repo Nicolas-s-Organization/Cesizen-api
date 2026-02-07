@@ -33,3 +33,8 @@ export const createArticleSchema = z.object({
 });
 
 export type CreateArticleInput = z.infer<typeof createArticleSchema>;
+
+
+export const updateArticleSchema = createArticleSchema.partial();
+
+export type UpdateArticleInput = z.infer<typeof updateArticleSchema>;
