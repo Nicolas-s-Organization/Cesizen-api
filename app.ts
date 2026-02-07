@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.routes";
 import categoryRoutes from "./routes/category.routes";
 import articleRoutes from "./routes/article.routes";
 import emotionRoutes from "./routes/emotion.routes";
+import trackerItempsRoutes from "./routes/trackerItem.routes";
 
 const rootDir = path.join(__dirname, "../"); 
 const uploadsDir = path.join(rootDir, "uploads");
@@ -27,6 +28,7 @@ async function main() {
     app.use("/articles", articleRoutes);
     app.use("/uploads", express.static(path.join(rootDir, "../uploads")));
     app.use("/emotions", emotionRoutes);
+    app.use("/trackeritems", trackerItempsRoutes);
 
 
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
