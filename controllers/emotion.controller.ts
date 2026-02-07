@@ -33,9 +33,9 @@ export const getEmotionById = async (req: Request, res: Response) => {
             throw new AppError("Identifiant de l'émotion invalide", "INVALID_EMOTION_ID", 400);
         }
 
-        const children = await emotionService.getEmotionById(emotionId);
+        const emotion = await emotionService.getEmotionById(emotionId);
 
-        res.status(200).json(children);
+        res.status(200).json(emotion);
     }
     catch (error) {
         console.error(error);

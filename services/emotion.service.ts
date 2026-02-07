@@ -5,7 +5,6 @@ import { CreateEmotionInput, UpdateEmotionInput } from "../schemas/emotion.schem
 
 
 
-
 export const getEmotions = async () => {
     return prisma.emotion.findMany({
         where: {
