@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
-import { AppError } from "../utils/error";
 
+import { AppError } from "../utils/error";
 import { UpdateCategoryInput } from "../schemas/category.schema";
 
 
