@@ -90,4 +90,35 @@ export const updateArticleImage = async (userId: string, articleId: string, imag
 };
 
 
+export const deleteArticle = async (userId: string, articleId: string) => {
+    // Vérifier que l'article existe
+    const article = await prisma.article.findFirst({
+        where: {
+            id: articleId
+        },
+    });
+
+    if (!article) {
+        throw new AppError("Article introuvable", "ARTICLE_NOT_FOUND", 404);
+    }
+
+    // Supprimer l'image si elle existe
+    if (article.imagePath) {
+        const fullPath = path.join(__dirname, "../../", article.imagePath);
+        fs.unlink(fullPath, (err) => {
+            if (err) console.warn("Impossible de supprimer l'image :", err.message);
+        });
+    }
+
+    // Supprimer l'article en DB
+    await prisma.article.delete({
+        where: { id: articleId },
+    });
+};
+
+
+
+
+
+
 

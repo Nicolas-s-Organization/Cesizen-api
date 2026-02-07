@@ -116,6 +116,32 @@ export const uploadArticleImage = async (req: AuthRequest, res: Response) => {
 };
 
 
+export const deleteArticle = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 404);
+        }
+
+        const { articleId } = req.params;
+        if (!articleId || typeof articleId !== "string") {
+            throw new AppError("ID article invalide", "INVALID_ARTICLE_ID", 400);
+        }
+
+        await articleService.deleteArticle(req.user.id, articleId);
+
+        return res.status(200).json({ message: "Article supprimé avec succès" });
+    }
+    catch (error) {
+        console.error(error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ code: error.code, message: error.message });
+        }
+        return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+    }
+};
+
+
+
 
 
 
