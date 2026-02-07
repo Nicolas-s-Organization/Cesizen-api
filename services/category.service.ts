@@ -23,11 +23,7 @@ export const createCategory = async (userId: string, name: string) => {
   });
 
   if (existingCategory) {
-    throw new AppError(
-      "Une catégorie avec ce nom existe déjà",
-      "CATEGORY_ALREADY_EXISTS",
-      409
-    );
+    throw new AppError("Une catégorie avec ce nom existe déjà", "CATEGORY_ALREADY_EXISTS", 409);
   }
 
   const category = await prisma.category.create({
