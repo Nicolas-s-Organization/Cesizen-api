@@ -89,6 +89,8 @@ export const loginSchema = z.object({
   password: z
     .string({ message: "Le mot de passe est requis" })
     .min(1, "Le mot de passe est requis"),
+
+  client: z.enum(["web", "mobile"]).default("web"),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
