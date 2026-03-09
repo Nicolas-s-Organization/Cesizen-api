@@ -25,9 +25,14 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-      const data = req.body as LoginInput;
+    const data = req.body as LoginInput;
 
     const { user, accessToken, refreshToken } = await authService.login(data);
+
+    // Dans le cas d'un login depuis l'app mobile on ne veut pas envoyé le refresh token dans les cookies
+    if (data.client === "mobile") {
+      return res.status(200).json({ user, accessToken, refreshToken });
+    }
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -53,7 +58,8 @@ export const login = async (req: Request, res: Response) => {
 
 export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    // Si la requete vient de l'app web le refresh token est dans un cookie, si elle vient de l'app mobile elle est renvoyée dans le body
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!refreshToken) {
       throw new AppError("Refresh token manquant", "NO_REFRESH_TOKEN", 401);
     }
@@ -61,7 +67,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const accessToken = await authService.refreshToken(refreshToken);
 
     res.status(200).json({ accessToken });
-  } 
+  }
   catch (error) {
     console.error(error);
     if (error instanceof AppError) {
