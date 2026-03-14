@@ -5,10 +5,10 @@ import { CreateTrackerItemInput, UpdateTrackerItemInput } from "../schemas/track
 
 
 
-export const getTrackerItems = async () => {
+export const getTrackerItems = async (userId: string) => {
     return prisma.trackerItem.findMany({
+        where: { userId },
         include: {
-            user: true,
             emotion: true
         }
     });
