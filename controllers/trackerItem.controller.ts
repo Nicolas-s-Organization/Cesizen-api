@@ -14,9 +14,12 @@ export interface AuthRequest extends Request {
 }
 
 
-export const getTrackerItems = async (req: Request, res: Response) => {
+export const getTrackerItems = async (req: AuthRequest, res: Response) => {
     try {
-        const trackerItems = await trackerItemService.getTrackerItems();
+        if (!req.user) {
+            throw new AppError("Non authentifié", "UNAUTHORIZED", 401);
+        }
+        const trackerItems = await trackerItemService.getTrackerItems(req.user.id);
         res.status(200).json(trackerItems);
     }
     catch (error) {
