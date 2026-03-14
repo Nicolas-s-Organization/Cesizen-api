@@ -145,6 +145,29 @@ export const refreshToken = async (token: string) => {
 };
 
 
+export const getMe = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      firstname: true,
+      lastname: true,
+      birthdate: true,
+      description: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!user) throw new AppError("Utilisateur introuvable", "USER_NOT_FOUND", 404);
+
+  return user;
+};
+
+
 
 export const generateAccessToken = (userId: string) => {
   const expiresIn = (ACCESS_TOKEN_EXPIRES_IN || "15m") as NonNullable<SignOptions["expiresIn"]>;
