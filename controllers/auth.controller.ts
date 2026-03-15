@@ -5,6 +5,15 @@ import { AppError } from "../utils/error";
 import type { RegisterInput, LoginInput } from "../schemas/auth.schema";
 
 
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
+
 export const register = async (req: Request, res: Response) => {
   try {
     const data = req.body as RegisterInput;
@@ -69,6 +78,26 @@ export const refreshToken = async (req: Request, res: Response) => {
     res.status(200).json({ accessToken });
   }
   catch (error) {
+    console.error(error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
+    }
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+  }
+};
+
+
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 404);
+    }
+
+    const userId = req.user.id;
+    const user = await authService.getMe(userId);
+    
+    res.status(200).json(user);
+  } catch (error) {
     console.error(error);
     if (error instanceof AppError) {
       return res.status(error.statusCode).json({ code: error.code, message: error.message });
