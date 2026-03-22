@@ -130,3 +130,25 @@ export const deletetrackerItem = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
     }
 };
+
+
+export const getReports = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            throw new AppError("Non authentifié", "UNAUTHORIZED", 401);
+        }
+
+        const period = (req.query.period as string) || "month";
+        const reports = await trackerItemService.getReports(req.user.id, period);
+
+        return res.status(200).json(reports);
+    }
+    catch (error) {
+        console.error(error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ code: error.code, message: error.message });
+        }
+        return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+    }
+};
+

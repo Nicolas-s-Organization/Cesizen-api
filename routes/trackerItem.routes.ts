@@ -9,6 +9,7 @@ import { createTrackerItemSchema , updateTrackerItemSchema} from "../schemas/tra
 
 const router = Router();
 
+router.get("/reports", authMiddleware, trackerItemController.getReports);
 router.get("/", authMiddleware, trackerItemController.getTrackerItems);
 router.get("/:trackerItemId", authMiddleware, trackerItemController.getTrackerItemById);
 router.post("/", authMiddleware, validate(createTrackerItemSchema), trackerItemController.createTrackerItem);
