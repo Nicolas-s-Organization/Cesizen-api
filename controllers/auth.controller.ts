@@ -106,3 +106,15 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
+
+export const logout = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  
+  if (refreshToken) {
+    await authService.logout(refreshToken);
+  }
+  
+  res.clearCookie("refreshToken");
+  res.status(200).json({ message: "Déconnecté" });
+};
+
