@@ -168,6 +168,13 @@ export const getMe = async (userId: string) => {
 };
 
 
+export const logout = async (refreshToken: string) => {
+  try {
+    const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as { jti: string };
+    await prisma.refreshToken.delete({ where: { id: payload.jti } });
+  } catch (_) {}
+};
+
 
 export const generateAccessToken = (userId: string) => {
   const expiresIn = (ACCESS_TOKEN_EXPIRES_IN || "15m") as NonNullable<SignOptions["expiresIn"]>;
