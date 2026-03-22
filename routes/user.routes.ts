@@ -7,9 +7,9 @@ import { adminCheck } from "../middlewares/role.middleware";
 const router = Router();
 
 router.get("/", authMiddleware, adminCheck, userController.getUsers);
-router.get("/:id", authMiddleware, adminCheck, userController.getUserById);
-// router.put("/:id", userController.updateUser);
-// router.delete("/:id", userController.deleteUser);
+router.get("/:userId", authMiddleware, adminCheck, userController.getUserById);
+router.put("/:userId", authMiddleware, adminCheck, userController.updateUser);
+router.delete("/:userId", authMiddleware, adminCheck, userController.deleteUser);
 
 
 export default router;
