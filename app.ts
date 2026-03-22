@@ -3,6 +3,7 @@ import { prisma } from './lib/prisma'
 import cookieParser from "cookie-parser";
 import { Request, Response, NextFunction } from "express";
 import path from "path";
+import cors from "cors";
 
 import { AppError } from "./utils/error";
 import userRoutes from "./routes/user.routes";
@@ -12,12 +13,17 @@ import articleRoutes from "./routes/article.routes";
 import emotionRoutes from "./routes/emotion.routes";
 import trackerItempsRoutes from "./routes/trackerItem.routes";
 
-const rootDir = path.join(__dirname, "../"); 
+const rootDir = path.join(__dirname, "../");
 const uploadsDir = path.join(rootDir, "uploads");
 
 async function main() {
     const app = express();
     const port = 3000;
+
+    app.use(cors({
+        origin: ['http://localhost:5173'], // à modifier pour la prod
+        credentials: true, // pour les cookies
+    }))
 
     app.use(express.json());
     app.use(cookieParser());
