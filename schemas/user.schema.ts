@@ -23,6 +23,41 @@ export const updateUserSchema = z.object({
     )
     .optional(),
 
+  email: z
+    .email({ message: "Format d'email invalide" })
+    .min(1, "L'email est requis")
+    .transform((val) => val.toLowerCase().trim())
+    .optional(),
+
+  birthdate: z
+    .string({ message: "La date de naissance est requise" })
+    .min(1, "La date de naissance est requise")
+    .refine(
+      (date) => {
+        const parsedDate = new Date(date);
+        return !isNaN(parsedDate.getTime());
+      },
+      { message: "Format de date invalide" },
+    )
+    .refine(
+      (date) => {
+        const birthdateDate = new Date(date);
+        const today = new Date();
+        return birthdateDate <= today;
+      },
+      { message: "La date de naissance ne peut pas être dans le futur" },
+    )
+    .refine(
+      (date) => {
+        const birthdateDate = new Date(date);
+        const today = new Date();
+        const age = today.getFullYear() - birthdateDate.getFullYear();
+        return age <= 120;
+      },
+      { message: "Date de naissance invalide" },
+    )
+    .optional(),
+
   role: z
     .enum(["USER", "ADMIN"], {
       message: "Le rôle doit être l'un des suivants: USER, ADMIN",

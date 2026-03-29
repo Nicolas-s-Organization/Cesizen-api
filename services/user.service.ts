@@ -43,7 +43,7 @@ export const getAllUsers = async (params: {
         { email: { contains: search, mode: "insensitive" as const } },
       ],
     }),
-    ...(role && {  role: role as UserRole  }),
+    ...(role && { role: role as UserRole }),
     ...(isActive !== undefined && { isActive }),
   };
 
@@ -58,6 +58,7 @@ export const getAllUsers = async (params: {
         firstname: true,
         lastname: true,
         role: true,
+        birthdate : true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
@@ -96,7 +97,7 @@ export const getUserById = async (id: string) => {
   });
 
   if (!user) {
-    throw new AppError("Utilisateur introuvable","USER_NOT_FOUND",404);
+    throw new AppError("Utilisateur introuvable", "USER_NOT_FOUND", 404);
   }
 
   return user;
@@ -108,6 +109,12 @@ export const updateUser = async (id: string, data: UpdateUserInput) => {
 
   if (!existingUser) throw new AppError("Utilisateur introuvable", "USER_NOT_FOUND", 404);
 
+  // Vérifier unicité email si changé
+  if (data.email && data.email !== existingUser.email) {
+    const emailTaken = await prisma.user.findUnique({ where: { email: data.email } });
+    if (emailTaken) throw new AppError("Cet email est déjà utilisé", "EMAIL_ALREADY_EXISTS", 409);
+  }
+
   return prisma.user.update({
     where: { id },
     data,
@@ -115,6 +122,7 @@ export const updateUser = async (id: string, data: UpdateUserInput) => {
       id: true,
       email: true,
       firstname: true,
+      birthdate: true,
       lastname: true,
       role: true,
       isActive: true,
@@ -127,7 +135,7 @@ export const updateUser = async (id: string, data: UpdateUserInput) => {
 
 export const deleteUser = async (id: string) => {
   const existingUser = await prisma.user.findUnique({ where: { id } });
-  
+
   if (!existingUser) throw new AppError("Utilisateur introuvable", "USER_NOT_FOUND", 404);
 
   return prisma.user.delete({ where: { id } });
