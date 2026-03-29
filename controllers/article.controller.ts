@@ -13,15 +13,36 @@ export interface AuthRequest extends Request {
     };
 }
 
+// export const getArticles = async (req: Request, res: Response) => {
+//     try {
+//         const articles = await articleService.getAllArticles();
+//         res.json(articles);
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+//     }
+// };
+
+
 export const getArticles = async (req: Request, res: Response) => {
     try {
-        const articles = await articleService.getAllArticles();
-        res.json(articles);
+        const { search, categoryId, status, page = "1", limit = "10" } = req.query;
+
+        const result = await articleService.getAllArticles({
+            search: search as string | undefined,
+            categoryId: categoryId as string | undefined,
+            status: status as string | undefined,
+            page: parseInt(page as string),
+            limit: parseInt(limit as string),
+        });
+
+        res.json(result);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
     }
 };
+
 
 
 export const getArticleById = async (req: Request, res: Response) => {

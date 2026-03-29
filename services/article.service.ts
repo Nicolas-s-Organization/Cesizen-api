@@ -4,16 +4,82 @@ import path from "path";
 
 import { AppError } from "../utils/error";
 import { CreateArticleInput, UpdateArticleInput } from "../schemas/article.schema";
+import { ArticleStatus } from "../generated/prisma/enums";
 
 
-export const getAllArticles = async () => {
-    return prisma.article.findMany({
-        include: {
-            user: true,
-            category: true
+// export const getAllArticles = async () => {
+//     return prisma.article.findMany({
+//         include: {
+//             user: true,
+//             category: true
+//         },
+//     });
+// };
+
+
+export const getAllArticles = async (params: {
+    search?: string;
+    categoryId?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+}) => {
+    const { search, categoryId, status, page = 1, limit = 10 } = params;
+    const skip = (page - 1) * limit;
+
+    const where = {
+        ...(search && {
+            OR: [
+                { title: { contains: search, mode: "insensitive" as const } },
+                { content: { contains: search, mode: "insensitive" as const } },
+            ],
+        }),
+        ...(categoryId && { categoryId }),
+        ...(status && { status: status as ArticleStatus }),
+    };
+
+    const [articles, total] = await Promise.all([
+        prisma.article.findMany({
+            where,
+            skip,
+            take: limit,
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                status: true,
+                imagePath: true,
+                createdAt: true,
+                updatedAt: true,
+                user: {
+                    select: {
+                        id: true,
+                        firstname: true,
+                        lastname: true,
+                    },
+                },
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        }),
+        prisma.article.count({ where }),
+    ]);
+
+    return {
+        data: articles,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         },
-    });
+    };
 };
+
 
 
 export const getArticleById = async (id: string) => {
