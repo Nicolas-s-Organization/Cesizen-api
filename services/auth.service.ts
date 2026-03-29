@@ -96,6 +96,11 @@ export const login = async (data: LoginInput) => {
     )
   }
 
+  // blocage du login web non admin ici pour éviter de sotcker un refresh token inutilement
+  if (data.client === "web" && user.role !== 'ADMIN') {
+    throw new AppError("Accès réservé aux administrateurs", "FORBIDDEN", 403);
+  }
+
   const { password, ...userWithoutPassword } = user;
 
   const accessToken = generateAccessToken(user.id);
@@ -172,7 +177,7 @@ export const logout = async (refreshToken: string) => {
   try {
     const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as { jti: string };
     await prisma.refreshToken.delete({ where: { id: payload.jti } });
-  } catch (_) {}
+  } catch (_) { }
 };
 
 
