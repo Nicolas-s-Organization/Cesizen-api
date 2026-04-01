@@ -36,7 +36,7 @@ export const getTrackerItemById = async (req: Request, res: Response) => {
             throw new AppError("Identifiant de Tracker Item invalide", "INVALID_TRACKER_ID", 400);
         }
 
-        const trackerItem = await trackerItemService.getEmotionById(trackerItemId);
+        const trackerItem = await trackerItemService.getTrackerItemById(trackerItemId);
 
         res.status(200).json(trackerItem);
     }
