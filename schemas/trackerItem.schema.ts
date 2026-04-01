@@ -31,7 +31,8 @@ export const updateTrackerItemSchema = z.object({
   comment: z
     .string()
     .max(500, "Le commentaire est trop long")
-    .optional(),
+    .optional()
+    .nullable(),
 });
 
 export type UpdateTrackerItemInput = z.infer<

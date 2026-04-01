@@ -10,14 +10,16 @@ export const getTrackerItems = async (userId: string) => {
         where: { userId },
         include: {
             emotion: true
-        }
+        },
+        orderBy: { createdAt: 'desc' }
     });
 };
 
 
-export const getEmotionById = async (trackerItemId: string) => {
+export const getTrackerItemById = async (trackerItemId: string) => {
     const trackerItem = await prisma.trackerItem.findFirst({
         where: { id: trackerItemId, },
+        include: { emotion: true },
     });
 
     if (!trackerItem) {
