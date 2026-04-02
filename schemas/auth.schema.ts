@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { updateUserSchema } from "./user.schema";
+
 
 export const registerSchema = z.object({
   email: z
@@ -94,3 +96,26 @@ export const loginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+
+export const updateProfileSchema = updateUserSchema.omit({
+  role: true,
+  isActive: true,
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Le mot de passe actuel est requis"),
+  newPassword: z
+    .string({ message: "Le mot de passe est requis" })
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+

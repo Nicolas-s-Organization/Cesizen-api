@@ -29,6 +29,13 @@ export const updateUserSchema = z.object({
     .transform((val) => val.toLowerCase().trim())
     .optional(),
 
+  description: z
+    .string()
+    .trim()
+    .min(10, "La description doit contenir au moins 10 caractères")
+    .max(500, "La description ne peut pas dépasser 500 caractères")
+    .optional(),
+
   birthdate: z
     .string({ message: "La date de naissance est requise" })
     .min(1, "La date de naissance est requise")

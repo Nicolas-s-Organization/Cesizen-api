@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
 
 import { AppError } from "../utils/error";
 import { UserRole } from "../generated/prisma/enums"
-import type { RegisterInput, LoginInput } from "../schemas/auth.schema";
+import type { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput } from "../schemas/auth.schema";
 
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
@@ -173,11 +173,63 @@ export const getMe = async (userId: string) => {
 };
 
 
+export const updateMe = async (userId: string, data: UpdateProfileInput) => {
+  if (data.email) {
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing && existing.id !== userId) {
+      throw new AppError("Cet email est déjà utilisé", "EMAIL_ALREADY_TAKEN", 400);
+    }
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...data,
+      ...(data.birthdate && { birthdate: new Date(data.birthdate) }),
+    },
+    select: {
+      id: true,
+      email: true,
+      firstname: true,
+      lastname: true,
+      birthdate: true,
+      description: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return user;
+};
+
+
+
 export const logout = async (refreshToken: string) => {
   try {
     const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as { jti: string };
     await prisma.refreshToken.delete({ where: { id: payload.jti } });
   } catch (_) { }
+};
+
+export const changePassword = async (userId: string, data: ChangePasswordInput) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) throw new AppError("Utilisateur introuvable", "USER_NOT_FOUND", 404);
+
+  const isValid = await bcrypt.compare(data.currentPassword, user.password);
+
+  if (!isValid) {
+    throw new AppError("Mot de passe actuel incorrect", "INVALID_PASSWORD", 400);
+  }
+
+  const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
 };
 
 

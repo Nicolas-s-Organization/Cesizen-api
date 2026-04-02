@@ -107,6 +107,24 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 };
 
 
+export const updateMe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 401);
+    }
+
+    const user = await authService.updateMe(req.user.id, req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
+    }
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+  }
+};
+
+
 export const logout = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
@@ -118,3 +136,19 @@ export const logout = async (req: Request, res: Response) => {
   res.status(200).json({ message: "Déconnecté" });
 };
 
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Utilisateur non authentifié", "UNAUTHORIZED", 401);
+    }
+
+    await authService.changePassword(req.user.id, req.body);
+    res.status(200).json({ message: "Mot de passe modifié avec succès" });
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ code: error.code, message: error.message });
+    }
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Erreur serveur" });
+  }
+};
