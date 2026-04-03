@@ -59,7 +59,7 @@ export const createTrackerItem = async (userId: string, data: CreateTrackerItemI
 
 
 export const updateTrackerItem = async (userId: string, trackerItemId: string, trackerItemData: UpdateTrackerItemInput) => {
-    const { intensity, comment } = trackerItemData;
+    const { intensity, comment, emotionId } = trackerItemData;
 
     const existingTrackerItem = await prisma.trackerItem.findUnique({
         where: { id: trackerItemId },
@@ -73,11 +73,27 @@ export const updateTrackerItem = async (userId: string, trackerItemId: string, t
         throw new AppError("Ce tracker ne vous appartient pas", "FORBIDDEN", 403);
     }
 
+    // Si on change l'émotion, vérifier qu'elle existe et est level 2
+    if (emotionId) {
+        const emotion = await prisma.emotion.findFirst({
+            where: { id: emotionId },
+        });
+
+        if (!emotion) {
+            throw new AppError("Émotion introuvable", "EMOTION_NOT_FOUND", 404);
+        }
+
+        if (emotion.level !== 2) {
+            throw new AppError("Vous devez sélectionner une émotion de niveau 2", "INVALID_EMOTION_LEVEL", 400);
+        }
+    }
+
     const updatedTrackerItem = await prisma.trackerItem.update({
         where: { id: trackerItemId },
         data: {
             intensity,
-            comment
+            comment,
+            ...(emotionId && { emotionId }),
         },
     });
 
