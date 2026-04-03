@@ -22,6 +22,11 @@ export type CreateTrackerItemInput = z.infer<
 
 
 export const updateTrackerItemSchema = z.object({
+  emotionId: z
+    .string()
+    .refine((val) => /^[0-9a-fA-F-]{36}$/.test(val), { message: "ID d'émotion invalide" })
+    .optional(),
+    
   intensity: z
     .number()
     .min(1)
