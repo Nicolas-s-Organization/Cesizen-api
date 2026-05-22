@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 
 import { AppError } from "../utils/error";
 import { CreateTrackerItemInput, UpdateTrackerItemInput } from "../schemas/trackerItem.schema";
+import { TrackerItem } from "../generated/prisma/client";
 
 
 
@@ -179,7 +180,7 @@ export const getReports = async (userId: string, period: string) => {
 
     // Intensité moyenne globale
     const averageIntensity = parseFloat(
-        (trackerItems.reduce((sum, item) => sum + item.intensity, 0) / totalEntries).toFixed(1)
+        (trackerItems.reduce((sum: number, item: TrackerItem) => sum + item.intensity, 0) / totalEntries).toFixed(1)
     );
 
     // Distribution par émotion parente (level 1)
