@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "dev": "nodemon -L -e ts --exec \"npx tsx app.ts\""
