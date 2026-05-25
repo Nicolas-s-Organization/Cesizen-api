@@ -44,3 +44,15 @@ jobs:
         with:
           node-version: 24
       - run: npm audit --audit-level=critical
+
+  gitleaks:
+    name: Détection de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # historique complet : un secret supprimé reste détectable
+      - name: Scan des secrets (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            detect --source=/repo --redact --verbose
