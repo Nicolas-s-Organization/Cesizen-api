@@ -1,0 +1,34 @@
+# Compose de TEST LOCAL (api + postgres conteneurisés).
+# ⚠️ Identifiants de test uniquement — la prod (VM) utilisera des secrets / env-file.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cesizen
+      POSTGRES_PASSWORD: cesizen
+      POSTGRES_DB: cesizen
+    volumes:
+      - cesizen-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cesizen"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://cesizen:cesizen@db:5432/cesizen?schema=public
+      ACCESS_TOKEN_SECRET: dev_access_secret
+      ACCESS_TOKEN_EXPIRES_IN: 15m
+      REFRESH_TOKEN_SECRET: dev_refresh_secret
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      NODE_ENV: production
+    ports:
+      - "3001:3000"
+
+volumes:
+  cesizen-db-data:

@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 
 // Dossier où stocker les images
-const uploadDir = path.join(__dirname, "../../uploads/articles");
+const uploadDir = path.join(process.cwd(), "uploads/articles");
 
 // Créer le dossier s’il n’existe pas
 if (!fs.existsSync(uploadDir)) {

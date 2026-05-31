@@ -141,7 +141,7 @@ export const updateArticleImage = async (userId: string, articleId: string, imag
 
     // Supprimer l'ancienne image si elle existe
     if (article.imagePath) {
-        const oldImagePath = path.join(__dirname, "../../", article.imagePath);
+        const oldImagePath = path.join(process.cwd(), article.imagePath);
         console.log(oldImagePath)
 
         fs.unlink(oldImagePath, (err) => {
@@ -188,7 +188,7 @@ export const deleteArticle = async (articleId: string) => {
 
     // Supprimer l'image si elle existe
     if (article.imagePath) {
-        const fullPath = path.join(__dirname, "../../", article.imagePath);
+        const fullPath = path.join(process.cwd(), article.imagePath);
         fs.unlink(fullPath, (err) => {
             if (err) console.warn("Impossible de supprimer l'image :", err.message);
         });
