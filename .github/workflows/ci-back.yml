@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  # Nom de l'image GHCR (lowercase obligatoire pour le registry)
+  IMAGE_NAME: ghcr.io/nicolas-s-organization/cesizen-api
+
 jobs:
   test:
     name: Tests unitaires
@@ -49,8 +53,57 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # historique complet : un secret supprimé reste détectable
+          fetch-depth: 0           # historique complet : un secret supprimé reste détectable
       - name: Scan des secrets (gitleaks)
         run: |
           docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
             detect --source=/repo --redact --verbose
+
+  build-push:
+    name: Build & push image GHCR
+    needs: [test, typecheck, audit, gitleaks]
+    # Push image sur develop/main OU sur tag git v* (= release prod). Jamais sur les PRs.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract metadata (tags + labels OCI)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            # Push sur une branche → :develop, :main (ou :chore-cd-back pour test)
+            type=ref,event=branch
+            # Tag git v1.2.3 → :1.2.3, :1.2, :1
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            # :latest UNIQUEMENT sur les tags v* (= release prod)
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            # Tag SHA pour la traçabilité immuable (un commit = une image identifiable)
+            type=sha,prefix=sha-,format=short
+
+      - name: Connexion à GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
