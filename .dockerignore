@@ -1,0 +1,24 @@
+# Dépendances et artefacts (régénérés dans l'image)
+node_modules
+dist
+generated
+
+# Données runtime / secrets (jamais dans l'image)
+uploads
+.env
+.env.*
+
+# Versioning et CI (cf. retour promos : pas de .git dans l'image)
+.git
+.github
+
+# Tests, couverture, outils
+tests
+coverage
+*.log
+.vscode
+
+# Docker lui-même
+Dockerfile
+.dockerignore
+README.md

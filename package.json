@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "build": "node build.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "dev": "nodemon -L -e ts --exec \"npx tsx app.ts\""
@@ -26,8 +27,8 @@
     "@types/pg": "^8.16.0",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.2",
+    "esbuild": "^0.28.0",
     "nodemon": "^3.1.11",
-    "prisma": "^7.3.0",
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
@@ -36,6 +37,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "prisma": "^7.3.0",
     "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

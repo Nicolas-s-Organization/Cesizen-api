@@ -13,9 +13,6 @@ import articleRoutes from "./routes/article.routes";
 import emotionRoutes from "./routes/emotion.routes";
 import trackerItempsRoutes from "./routes/trackerItem.routes";
 
-const rootDir = path.join(__dirname, "../");
-const uploadsDir = path.join(rootDir, "uploads");
-
 async function main() {
     const app = express();
     const port = 3000;
@@ -32,9 +29,14 @@ async function main() {
     app.use("/users", userRoutes);
     app.use("/categories", categoryRoutes);
     app.use("/articles", articleRoutes);
-    app.use("/uploads", express.static(path.join(rootDir, "../uploads")));
+    app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
     app.use("/emotions", emotionRoutes);
     app.use("/trackeritems", trackerItempsRoutes);
+
+    // Route de santé (utilisée par le HEALTHCHECK Docker et le monitoring)
+    app.get("/health", (_req: Request, res: Response) => {
+        res.status(200).json({ status: "ok" });
+    });
 
 
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
