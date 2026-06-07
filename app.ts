@@ -35,7 +35,7 @@ async function main() {
 
     // Route de santé (utilisée par le HEALTHCHECK Docker et le monitoring)
     app.get("/health", (_req: Request, res: Response) => {
-        res.status(200).json({ status: "ok" });
+        res.status(200).json({ status: "ok", "deployed": "via-watchtower" });
     });
 
 
