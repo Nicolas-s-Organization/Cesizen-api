@@ -3,6 +3,7 @@ name: CI Back
 on:
   push:
     branches: [main, develop]
+    tags: ['v*']               # release prod déclenchée par un tag git v*
   pull_request:
     branches: [main, develop]
 
