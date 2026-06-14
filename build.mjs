@@ -9,12 +9,15 @@ import { build } from 'esbuild';
 //
 // Pas de banner __dirname : notre code utilise process.cwd() partout, plus aucune référence
 // à __dirname dans le source app (cf. upload.middleware.ts et article.service.ts).
-await build({
-  entryPoints: ['app.ts'],
+const common = {
   bundle: true,
   platform: 'node',
   target: 'node22',
   format: 'esm',
-  outfile: 'dist/server.mjs',
   packages: 'external',
-});
+};
+
+await Promise.all([
+  build({ ...common, entryPoints: ['app.ts'],         outfile: 'dist/server.mjs' }),
+  build({ ...common, entryPoints: ['prisma/seed.ts'], outfile: 'dist/seed.mjs'   }),
+]);

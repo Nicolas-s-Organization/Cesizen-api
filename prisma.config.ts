@@ -7,6 +7,9 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // En dev local, `prisma migrate dev` / `migrate reset` lance le seed via tsx.
+    // En container, on appelle directement `node dist/seed.mjs` (seed bundlé par esbuild).
+    seed: "tsx prisma/seed.ts",
   },
   datasource: {
     url: process.env["DATABASE_URL"],

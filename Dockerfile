@@ -39,5 +39,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3000/health || exit 1
 
-# Applique les migrations puis démarre l'API
-ENTRYPOINT ["sh", "-c", "npx prisma migrate deploy && exec node dist/server.mjs"]
+# Applique les migrations, applique le seed idempotent, puis démarre l'API.
+# Le seed utilise des UUIDs fixes + upsert → no-op si les données existent déjà.
+ENTRYPOINT ["sh", "-c", "npx prisma migrate deploy && node dist/seed.mjs && exec node dist/server.mjs"]
