@@ -61,14 +61,16 @@ jobs:
             detect --source=/repo --redact --verbose
 
   build-push:
-    name: Build & push image GHCR
+    name: Build, scan & push image GHCR
     needs: [test, typecheck, audit, gitleaks]
-    # Push image sur develop/main OU sur tag git v* (= release prod). Jamais sur les PRs.
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    # Le job tourne sur PR ET sur push (pour que Trivy bloque la PR avant le merge).
+    # Le PUSH GHCR lui-même est conditionnel (voir étape "Push sur GHCR" plus bas) :
+    # sur PR → on build + scan uniquement (pas de push). Sur push develop/main/tag → push.
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      security-events: write   # pour uploader le rapport SARIF Trivy dans l'onglet Security
     steps:
       - uses: actions/checkout@v4
 
@@ -99,12 +101,53 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build & push
+      # ─── 1. Build l'image LOCALEMENT (pas encore poussée sur GHCR) ────────
+      # On charge dans le docker du runner pour pouvoir la scanner AVANT le push.
+      # Le cache GHA est peuplé ici pour que l'étape de push à la fin soit instantanée.
+      - name: Build local (pour scan, pas de push)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
+          push: false
+          tags: scan-target:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ─── 2. Trivy — rapport SARIF (informational, pour traçabilité) ──────
+      # Remonté dans l'onglet Security GitHub. Cette étape ne bloque jamais.
+      - name: Trivy — rapport HIGH+CRITICAL (SARIF pour Security tab)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: scan-target:latest
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload SARIF dans l'onglet Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      # ─── 3. Trivy — gate strict : bloque le push si CRITICAL corrigeable ──
+      - name: Trivy — gate (échec si CRITICAL corrigeable)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: scan-target:latest
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+      # ─── 4. Push sur GHCR — UNIQUEMENT sur push develop/main/tag (pas sur PR) ──
+      # ET uniquement si toutes les étapes précédentes (dont Trivy) ont passé.
+      # Le build se rejoue mais c'est instantané grâce au cache GHA peuplé étape 1.
+      - name: Push sur GHCR (uniquement si scan OK et push event sur dev/main/tag)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
